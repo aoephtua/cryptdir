@@ -7,7 +7,7 @@
   "bin": {
     "cryptdir": "./src/cli.mjs"
   },
-  "author": "Thorsten A. weintz",
+  "author": "Thorsten A. Weintz",
   "repository": {
     "type": "git",
     "url": "git@github.com:aoephtua/cryptdir.git"
