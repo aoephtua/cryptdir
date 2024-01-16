@@ -1,0 +1,27 @@
+{
+  "name": "cryptdir",
+  "version": "1.0.0",
+  "description": "Command line tool and library for encrypting and decrypting dirents",
+  "main": "./src/cryptDir.mjs",
+  "type": "module",
+  "bin": {
+    "cryptdir": "./src/cli.mjs"
+  },
+  "author": "Thorsten A. weintz",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:aoephtua/cryptdir.git"
+  },
+  "keywords": [
+    "aes256",
+    "sha256",
+    "encryption",
+    "decryption",
+    "obfuscation"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^11.1.0",
+    "uuid": "^9.0.1"
+  }
+}
