@@ -25,8 +25,15 @@ Options:
 
 ### Commands
 
-- encrypt
+- [encrypt](#encrypt)
 - decrypt
+
+#### encrypt
+
+```
+Options:
+  -f, --filter <filter>  regular expression pattern
+```
 
 ## License
 

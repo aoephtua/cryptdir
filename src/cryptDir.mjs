@@ -16,9 +16,9 @@ class CryptDir {
     defaultEncDir = '.cryptdir';
 
     /**
-     * Default array with dirent name filters of @see CryptDir.
+     * Default array with excluded start strings of @see CryptDir.
      */
-    defaultNameFilters = ['.~lock.'];
+    defaultExcludedStartStrings = ['.~lock.'];
 
     /**
      * Instance of @see FSDirectory.
@@ -29,7 +29,7 @@ class CryptDir {
      * Initializes new instance of @see CryptDir.
      * 
      * @param {string} srcDir Full path of source directory.
-     * @param {string} encDir Object with additional options.
+     * @param {string} encDir Full path of encrypted directory.
      */
     constructor(srcDir, encDir) {
         this.srcDir = srcDir;
@@ -40,11 +40,13 @@ class CryptDir {
      * Processes encryption of @see CryptDir.
      * 
      * @param {string} masterPwd String with the master password.
+     * @param {object} options Object with additional options.
      */
-    async encrypt(masterPwd) {
+    async encrypt(masterPwd, options) {
+        const { filter } = options;
         const currDirectory = new FSDirectory();
         const entries = await this.#loadDecEntries(masterPwd, currDirectory);
-        const srcDirents = this.#getSrcDirents();
+        const srcDirents = this.#getSrcDirents(filter);
 
         if (srcDirents) {
             const encDir = this.encDir;
@@ -248,7 +250,7 @@ class CryptDir {
      * @param {string} fullName String with full name of dirent.
      * @returns Returns string with relative path.
      */
-    #getRelativePath = (fullName) => fullName.replace(this.srcDir + '\\', '');
+    #getRelativePath = (fullName) => fullName.replace(this.srcDir + path.sep, '');
 
     /**
      * Gets string with full name of dirent by path and name.
@@ -259,27 +261,45 @@ class CryptDir {
     #getDirentFullName = ({ path: direntPath, name }) => path.join(direntPath, name);
 
     /**
+     * Validates whether dirent path is valid by regular expression pattern.
+     * 
+     * @param {object} dirent Object with dirent values.
+     * @param {string} filter String with filter as regular expression pattern.
+     * @returns Returns true if name is valid.
+     */
+    #filterDirentByRegexPattern = (dirent, filter) =>
+        !filter || new RegExp(filter).test(
+            this.#getRelativePath(
+                this.#getDirentFullName(dirent)
+            )
+        );
+
+    /**
      * Validates whether dirent name is valid.
      * 
      * @param {object} dirent Object with dirent values.
+     * @param {string} filter String with filter as regular expression pattern.
      * @returns Returns true if name is valid.
      */
-    #filterDirentByName = (dirent) => {
+    #filterDirentByName = (dirent, filter) => {
         const { name } = dirent;
 
-        for (const nameFilter of this.defaultNameFilters) {
-            if (name.startsWith(nameFilter)) {
-                return true;
+        for (const startStr of this.defaultExcludedStartStrings) {
+            if (name.startsWith(startStr)) {
+                return;
             }
         }
+
+        return this.#filterDirentByRegexPattern(dirent, filter);
     };
 
     /**
      * Gets dirents of source directory.
      * 
+     * @param {string} filter String with filter as regular expression pattern.
      * @returns Returns array with dirents of source directory.
      */
-    #getSrcDirents() {
+    #getSrcDirents(filter) {
         const getName = this.#getDirentFullName;
 
         if (fs.existsSync(this.srcDir)) {
@@ -291,7 +311,7 @@ class CryptDir {
 
             return dirents.filter(dirent =>
                 !getName(dirent).startsWith(this.encDir) &&
-                !this.#filterDirentByName(dirent));
+                this.#filterDirentByName(dirent, filter))
         }
     }
 

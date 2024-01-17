@@ -1,6 +1,6 @@
 {
   "name": "cryptdir",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Command line tool and library for encrypting and decrypting dirents",
   "main": "./src/cryptDir.mjs",
   "type": "module",

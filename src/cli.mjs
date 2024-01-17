@@ -8,9 +8,12 @@ import { setLogger } from './log.mjs';
 import CryptDir from './cryptDir.mjs';
 
 /**
- * Contains command names as @see string values.
+ * Contains @see Array with objects of commands.
  */
-const cmdNames = ['encrypt', 'decrypt'];
+const commands = [
+    { name: 'encrypt', options: [['-f, --filter <filter>', 'regular expression pattern']] },
+    { name: 'decrypt' }
+];
 
 /**
  * Creates new instance of @see Command.
@@ -26,20 +29,23 @@ setLogger(console);
  * Sets the program version to @see Command instance.
  */
 program
-    .version('1.0.0', '-v, --version');
+    .version('1.1.0', '-v, --version');
 
 /**
  * Adds multiple instances of @see Command to Commander.js.
  */
-for (const cmdName of cmdNames) {
+for (const command of commands) {
+    const { name: cmdName, options } = command;
     const cmd = program.command(cmdName);
 
-    cmd.action(async () => {
+    options?.forEach(option => cmd.option(...option));
+
+    cmd.action(async (opts) => {
         const { password, srcDirectory, encDirectory } = program.opts();
 
         const cryptDir = new CryptDir(srcDirectory || process.cwd(), encDirectory);
 
-        await cryptDir[cmdName](password);
+        await cryptDir[cmdName](password, opts);
     });
 }
 
