@@ -1,13 +1,19 @@
 // Copyright (c) 2024, Thorsten A. Weintz. All rights reserved.
 // Licensed under the MIT license. See LICENSE in the project root for license information.
 
+import { getLocaleISOString } from './dateTimeUtils.mjs';
+import { getCharsByCount } from './stringUtils.mjs';
+
 /**
  * Writes output message to the global logger.
  * 
  * @param {string} message String with the output message.
  */
 const log = (message) => {
-    global.logger?.log(message);
+    const localeIsoDate = getLocaleISOString(new Date());
+    const prefix = localeIsoDate + getCharsByCount(' ', 4);
+
+    global.logger?.log(prefix + message);
 };
 
 /**
