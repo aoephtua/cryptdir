@@ -29,7 +29,7 @@ setLogger(console);
  * Sets the program version to @see Command instance.
  */
 program
-    .version('1.1.0', '-v, --version');
+    .version('1.2.0', '-v, --version');
 
 /**
  * Adds multiple instances of @see Command to Commander.js.
