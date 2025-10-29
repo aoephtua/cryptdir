@@ -53,21 +53,19 @@ class CryptDir {
 
             if (srcDirents.length) {
                 this.#mkdirSyncWithCheck(encDir);
-    
+
                 for (const dirent of srcDirents) {
                     await this.#encryptDirent(dirent, currDirectory);
                 }
-    
+
                 this.#removeObsoleteDirents(currDirectory);
-    
+
                 if (!this.fsDirectory.equals(entries.dirents)) {
                     await this.fsDirectory.saveToFile(encDir, masterPwd);
                 }
             } else if (this.#rmSyncRecWithCheck(encDir)) {
                 log(`Removed directory '${encDir}'`);
             }
-        } else {
-            log(`Invalid source directory '${this.srcDir}'`);
         }
     }
 
@@ -79,22 +77,26 @@ class CryptDir {
     async decrypt(masterPwd) {
         const { dirents } = await this.#loadDecEntries(masterPwd);
 
-        for (const dirent of dirents) {
-            const { path: direntPath, fileId } = dirent;
-            const fullName = path.join(this.srcDir, direntPath);
-            const relativePath = this.#getRelativePath(fullName);
-            const exists = fs.existsSync(fullName);
+        if (dirents.length) {
+            this.#mkdirSyncWithCheck(this.srcDir, { recursive: true });
 
-            if (fileId) {
-                const file = this.fsDirectory.findFileById(fileId);
+            for (const dirent of dirents) {
+                const { path: direntPath, fileId } = dirent;
+                const fullName = path.join(this.srcDir, direntPath);
+                const relativePath = this.#getRelativePath(fullName);
+                const exists = fs.existsSync(fullName);
 
-                if (file) {
-                    await this.#decryptFile(file, exists, fullName, relativePath);
+                if (fileId) {
+                    const file = this.fsDirectory.findFileById(fileId);
+
+                    if (file) {
+                        await this.#decryptFile(file, exists, fullName, relativePath);
+                    }
+                } else if (!exists) {
+                    fs.mkdirSync(fullName);
+
+                    log(`Created directory '${relativePath}'`);
                 }
-            } else if (!exists) {
-                fs.mkdirSync(fullName);
-
-                log(`Created directory '${relativePath}'`);
             }
         }
     }
@@ -140,7 +142,7 @@ class CryptDir {
                 const aesFileCryptor = this.#getAesFileCryptorByPwd(pwd);
 
                 await aesFileCryptor.encryptFileToFile(fullName, this.#getEncFilePath(fileId));
-            }            
+            }
 
             return [fileId, { fileId, fileHash, pwd }];
         }
@@ -302,7 +304,7 @@ class CryptDir {
     #getSrcDirents(filter) {
         const getName = this.#getDirentFullName;
 
-        if (fs.existsSync(this.srcDir)) {
+        if (this.#isValidSrcDir()) {
             const dirents = fs.readdirSync(this.srcDir, { recursive: true, withFileTypes: true })
                 .sort((a, b) => getName(a).localeCompare(getName(b), undefined, {
                     numeric: true,
@@ -316,14 +318,30 @@ class CryptDir {
     }
 
     /**
+     * Validates whether source directory exists.
+     * 
+     * @returns Returns whether source directory is valid.
+     */
+    #isValidSrcDir() {
+        const exists = fs.existsSync(this.srcDir);
+
+        if (!exists) {
+            log(`Invalid source directory '${this.srcDir}'`);
+        }
+
+        return exists;
+    }
+
+    /**
      * Creates a folder if it does not exists.
      * 
      * @param {string} path String with the full path.
+     * @param {object} options Object with additional options.
      * @returns Returns whether creation succeeded.
      */
-    #mkdirSyncWithCheck(path) {
+    #mkdirSyncWithCheck(path, options) {
         if (!fs.existsSync(path)) {
-            fs.mkdirSync(path);
+            fs.mkdirSync(path, options);
 
             return true;
         }
@@ -334,7 +352,7 @@ class CryptDir {
      * 
      * @param {string} path String with the full path.
      * @param {object} options Object with additional options.
-     * @returns 
+     * @returns Returns undefined.
      */
     #rmSync = (path, options) =>
         fs.rmSync(path, options);
