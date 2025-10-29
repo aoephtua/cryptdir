@@ -1,6 +1,6 @@
 {
   "name": "cryptdir",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Command line tool and library for encrypting and decrypting dirents",
   "main": "./src/cryptDir.mjs",
   "type": "module",
@@ -21,7 +21,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "commander": "^11.1.0",
-    "uuid": "^9.0.1"
+    "commander": "^14.0.2",
+    "uuid": "^13.0.0"
   }
 }
